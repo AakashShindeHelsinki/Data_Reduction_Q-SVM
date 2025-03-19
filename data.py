@@ -1,6 +1,8 @@
 from sklearn.datasets import make_blobs, make_classification, make_gaussian_quantiles
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.manifold import TSNE
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import normalize
 import csv
 import shortuuid
 import numpy as np
@@ -14,12 +16,12 @@ from tensorflow.keras import layers, losses
 def data_generator_sklearn():
     DataID = shortuuid.uuid()
     DataGenAlgo = ' make_classification'
-    Sample_size = 2000
+    Sample_size = 500
     nclass = 2
     GenRandomState = 1
-    nInfo = 10
-    nFeature = 16
-    nRedun = 4
+    nInfo = 4
+    nFeature = 8
+    nRedun = 2
     nRep = 2
     nCluster = 1
     classSep = 2
@@ -80,6 +82,22 @@ def pca_algo(q_num, X_train, X_test):
 
     return X_train,X_test
 
+def svd_algo(q_num, X_train, X_test):
+    svd = TruncatedSVD(n_components=q_num)
+    X_train = svd.fit_transform(X_train)
+    X_test = svd.fit_transform(X_test)
+    
+    return X_train,X_test
+
+def tSNE_algo(q_num, X_train, X_test):
+    tsne = TSNE(n_components=q_num,learning_rate='auto',init='random',perplexity=5, method='exact')
+    X_train = tsne.fit_transform(X_train)
+    X_test = tsne.fit_transform(X_test)
+    
+    return X_train, X_test
+    
+    
+
 
 class Autoencoder(Model):
     def __init__(self, latent_dim, shape):
@@ -133,7 +151,9 @@ def data_load_and_process(q_num, data_gen, data_redu = 'no_redu' ):
     elif data_gen == 'capital1_synthetic_data':
         X, y, DataID, data_file = data_generator_synthetic_data_capital1()
 
+    # convert y value in range of 1 and -1
 
+    y = np.where(y==0,-1,1) 
     X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size = traintestSplit, shuffle=Shuf, random_state=SplitRandomState)
 
     
@@ -141,6 +161,10 @@ def data_load_and_process(q_num, data_gen, data_redu = 'no_redu' ):
         X_train, X_test = pca_algo(q_num, X_train, X_test)
     elif data_redu == 'autoencode':
         X_train, X_test = autoencoder_algo(q_num, X_train, X_test)
+    elif data_redu == 'svd':
+        X_train, X_test = svd_algo(q_num, X_train, X_test)
+    elif data_redu == 'tsne':
+        X_train, X_test = tSNE_algo(q_num, X_train, X_test)
 
     
     update_vals = {'X_train' : X_train,'X_test' : X_test,'Y_train' : Y_train, 'Y_test' : Y_test,
