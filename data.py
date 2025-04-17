@@ -16,14 +16,14 @@ from tensorflow.keras import layers, losses
 def data_generator_sklearn():
     DataID = shortuuid.uuid()
     DataGenAlgo = ' make_classification'
-    Sample_size = 500
+    Sample_size = 20000
     nclass = 2
     GenRandomState = 1
     nInfo = 4
     nFeature = 8
     nRedun = 2
     nRep = 2
-    nCluster = 1
+    nCluster = 3
     classSep = 2
 
 
@@ -43,26 +43,22 @@ def data_generator_synthetic_data_capital1():
 
     DataID = shortuuid.uuid()
     DataGenAlgo = 'synthetic_data'
-    Sample_size = 2000
+    Sample_size = 20000
     nclass = 2
     GenRandomState = 1
-    nInfo = 10
-    nFeature = 16
-    nRedun = 2
-    nNusiance = 4
-    pthresh = 0.75
-    expr2 ="x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10"
-    col_map = {"x1": 1, "x2": 0,"x3":1, "x4": 1, "x5": 0, "x6": 1, "x7": 1, "x8": 0,"x9":1, "x10": 0}
-    cov = np.array([[1. , 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-       [0.8, 1. , 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-       [0.8, 0.8, 1. , 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-       [0.8, 0.8, 0.8, 1. , 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-       [0.8, 0.8, 0.8, 0.8, 1. , 0.8, 0.8, 0.8, 0.8, 0.8],
-       [0.8, 0.8, 0.8, 0.8, 0.8, 1. , 0.8, 0.8, 0.8, 0.8],
-       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1. , 0.8, 0.8, 0.8],
-       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1. , 0.8, 0.8],
-       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1. , 0.8],
-       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 1. ]])
+    nInfo = 6
+    nFeature = 8
+    nRedun = 0
+    nNusiance = 2
+    pthresh = 0.55
+    expr2 ="x1 + x2 + x3 + x4 + x5 + x6 "
+    col_map = {"x1": 1, "x2": 0,"x3":1, "x4": 1, "x5": 0, "x6": 1}
+    cov = np.array([[1. , 0.8, 0.8, 0.8, 0.8, 0.8],
+       [0.8, 1. , 0.8, 0.8, 0.8, 0.8],
+       [0.8, 0.8, 1. , 0.8, 0.8, 0.8],
+       [0.8, 0.8, 0.8, 1. , 0.8, 0.8],
+       [0.8, 0.8, 0.8, 0.8, 1. , 0.8],
+       [0.8, 0.8, 0.8, 0.8, 0.8, 1. ]])
 
     X, y_reg, y_prob, y_label = make_tabular_data(n_samples=Sample_size, n_informative=nInfo, n_redundant=nRedun ,n_nuisance=nNusiance, cov=cov, n_classes=nclass, col_map=col_map, expr=expr2, p_thresh=pthresh, seed=GenRandomState)
 
@@ -90,7 +86,7 @@ def svd_algo(q_num, X_train, X_test):
     return X_train,X_test
 
 def tSNE_algo(q_num, X_train, X_test):
-    tsne = TSNE(n_components=q_num,learning_rate='auto',init='random',perplexity=5, method='exact')
+    tsne = TSNE(n_components=q_num,learning_rate=10,init='pca',perplexity=50, max_iter = 10000, n_iter_without_progress=300,method='exact')
     X_train = tsne.fit_transform(X_train)
     X_test = tsne.fit_transform(X_test)
     

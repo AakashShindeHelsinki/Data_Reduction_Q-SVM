@@ -42,7 +42,7 @@ def SVC_Loss(kmatrix, labels):
     loss = np.sum(np.abs(dual_coeff)) - (0.5 * (dual_coeff.T @ kmatrix @ dual_coeff))
     return -loss
     
-itter = 300
+itter = 600
 learning_rate = 0.01
 batch_size = 25
 def qsvm_training(X_train,Y_train,nqubits,layer_type,layer_num,embed): 
@@ -53,6 +53,8 @@ def qsvm_training(X_train,Y_train,nqubits,layer_type,layer_num,embed):
         params = np.random.uniform(0,2*np.pi, total_params, requires_grad = True)
         #params = tf.reshape(tf.convert_to_tensor(params),(layer_num,nqubits,3))
     elif layer_type == 'Shallow_CRZ':
+        params = np.random.uniform(0,2*np.pi,(layer_num,3,nqubits),requires_grad = True)
+    elif layer_type == 'Shallow_CRX':
         params = np.random.uniform(0,2*np.pi,(layer_num,3,nqubits),requires_grad = True)
     elif layer_type == 'Deep_Entangle':
         params = np.random.uniform(0,2*np.pi,(layer_num,9,nqubits),requires_grad = True)
@@ -74,13 +76,6 @@ def qsvm_training(X_train,Y_train,nqubits,layer_type,layer_num,embed):
     
     for it in range(itter):
         subset = np.random.choice(list(range(len(X_train))), batch_size)
-        #subset = numpy.array([12,153,606,720,69,47,87,918,37,85,264,384,87,186,57,708,99,120,694,585])
-        """cost = lambda _params: -qml.kernels.target_alignment(
-            X_train[:int(len(X_train)*0.5)],
-            Y_train[:int(len(X_train)*0.5)],
-            lambda x1, x2:  QSVM_circuit.QSVM_circuit(x1, x2, _params, nqubits, layer_type, layer_num, embed),
-            assume_normalized_kernel=True,
-        )"""
         
         """  print(type(params))
         params, cost_new = opt.step_and_cost(lambda v: cost_cross_entropy(v, X_train, Y_train, X_train[subset], Y_train[subset],  nqubits, layer_type, layer_num, embed), params.reshape(-1))
@@ -91,9 +86,6 @@ def qsvm_training(X_train,Y_train,nqubits,layer_type,layer_num,embed):
                                                                         lambda x1,x2: QSVM_circuit.QSVM_circuit(x1,x2,(_params).reshape(layer_num,3,nqubits),
                                                                                                                 nqubits,layer_type,layer_num, embed)
                                                                         ), Y_train[subset]), params.reshape(-1))"""
-        #total_params = layer_num*9*nqubits                                      
-        #params = np.random.randn(total_params,requires_grad = True)
-        #params = params.reshape(layer_num,9,nqubits)
     
         params,cost = opt.step_and_cost(lambda _params: -qml.kernels.target_alignment(
             X_train[subset],
@@ -109,13 +101,13 @@ def qsvm_training(X_train,Y_train,nqubits,layer_type,layer_num,embed):
             )
             alignment_history.append(current_alignment)"""
             print(f"Target Alignment Cost:{cost}")
-            print(f"Params:{params}")
+            print(params)
             
             #print(f"Step {it+1} - Alignment = {current_alignment:.3f}")
             
             
-            cost_new = SVC_Loss(qml.kernels.square_kernel_matrix(X_train[subset], lambda x1,x2: QSVM_circuit.QSVM_circuit(x1,x2,params, nqubits,layer_type,layer_num, embed)), Y_train[subset])                             
-            print(f"SVC_Loss:{cost_new}")
+            #cost_new = SVC_Loss(qml.kernels.square_kernel_matrix(X_train[subset], lambda x1,x2: QSVM_circuit.QSVM_circuit(x1,x2,params, nqubits,layer_type,layer_num, embed)), Y_train[subset])                             
+            #print(f"SVC_Loss:{cost_new}")
     
     trained_kernel = lambda x1, x2: QSVM_circuit.QSVM_circuit(x1, x2, params, nqubits, layer_type, layer_num, embed)
     trained_kernel_matrix = lambda X1, X2: qml.kernels.kernel_matrix(X1, X2, trained_kernel)

@@ -57,6 +57,19 @@ def layer3(params, wires, layer_num, nqubits, x, embed): ##Deep Entangling layer
 def layer4(x, params, nqubits, wires): #QAOA Encoding
     qml.QAOAEmbedding(features=x,weights=params,wires=range(nqubits))
     
+def layer5(params, wires, layer_num, nqubits, x, embed): #Shallow Entangle CRX
+    for l in range(0,layer_num):
+        for  i in range(0,nqubits):
+            qml.RZ(params[l,0,i],wires=wires[i])
+            qml.RY(params[l,1,i],wires=wires[i])
+            
+        for i in range(0,nqubits-1):
+            qml.CRX(params[l,2,i],wires=[i,i+1])
+        qml.CRX(params[l,2,nqubits-1],wires=[nqubits-1,0])
+        
+        for  i in range(0,nqubits):
+            qml.Hadamard(wires=wires[i])
+        Embedding.data_embedding(x, nqubits,type=embed)
     
 
 #Full Ansatz Ciruit
@@ -65,7 +78,7 @@ def ansatz(x, params, nqubits, wires, layer_type, layer_num, embed):
         layer_type == 'QAOA'
         layer4(x, params, nqubits, wires)
     else:
-        for  i in range(0,nqubits):
+        for i in range(0,nqubits):
             qml.Hadamard(wires=wires[i])
         Embedding.data_embedding(x, nqubits,type=embed)
         if layer_type == 'Strong_Entangle':
@@ -73,6 +86,8 @@ def ansatz(x, params, nqubits, wires, layer_type, layer_num, embed):
             layer1(params,wires,layer_num,nqubits)
         elif layer_type == 'Shallow_CRZ':
             layer2(params,wires,layer_num,nqubits,x,embed)
+        elif layer_type == 'Shallow_CRX':
+            layer5(params,wires,layer_num,nqubits,x,embed)
         elif layer_type == 'Deep_Entangle':
             layer3(params,wires,layer_num,nqubits,x,embed)
 

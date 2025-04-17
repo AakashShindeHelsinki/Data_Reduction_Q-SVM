@@ -22,9 +22,9 @@ def data_creation_check():
         print("\n---------------------------------------------------------------")
         
 def layer_check(layer_type):
-    layer_num = 2
-    nqubits = 4
-    X_train, Y_train, X_test, Y_test, DataID = data.data_load_and_process(q_num =  nqubits, data_gen = 'sklearn_make_class', data_redu='pca')
+    layer_num = 1
+    nqubits = 8
+    X_train, Y_train, X_test, Y_test, DataID = data.data_load_and_process(q_num =  nqubits, data_gen = 'sklearn_make_class', data_redu='no_redu')
     if layer_type == 'Strong_Entangle':
         weights = np.random.uniform(0,2*np.pi, layer_num * nqubits * 3, requires_grad = True)
         dev = qml.device("default.qubit", wires = nqubits)
